@@ -126,8 +126,8 @@ abstract class OpenCEX_token{
 }
 
 final class OpenCEX_pseudo_token extends OpenCEX_token{
-	public function send(int $from, string $address, OpenCEX_uint $amount){
-		$this->safety_checker->die2("Test tokens are not withdrawable!");
+	public function send(int $from, string $address, OpenCEX_uint $amount, bool $sync = true){
+		$this->creditordebit($from, $amount, false, $sync);
 	}
 	public function sweep(int $from){
 		$this->safety_checker->die2("Test tokens are not depositable!");

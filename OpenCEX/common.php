@@ -385,32 +385,25 @@ abstract class OpenCEX_L2_context{
 		if(!$session){
 			$session = $this->get_active_session_token();
 		}
-
-		if($session){
-			//Authenticate session token
-			$result = $this->safe_query(implode(["SELECT UserID, Expiry FROM Sessions WHERE SessionTokenHash = '", hash("sha256", $session), "';"]));
-			
-			//Safety checking
-			if(intval($result->num_rows) != 1){
-				return 0;
-			}
-			
-			$result = $result->fetch_assoc();				
-			
-			//Check if account is valid (not deleted)
-			$userid = intval($this->convcheck2($result, "UserID"));
-			if(!$this->check_valid_account($userid)){
-				return 0;
-			}
-			//Check if session is valid (not expired)
-			if(time() > intval($this->convcheck2($result, "Expiry"))){
-				return 0;
-			}
-			
-			return $userid;
-		}
 		
-		return 0;
+		$this->check_safety_2(is_null($session), "Invalid session token!");
+
+		//Authenticate session token
+		$result = $this->safe_query(implode(["SELECT UserID, Expiry FROM Sessions WHERE SessionTokenHash = '", hash("sha256", $session), "';"]));
+		
+		//Safety checking
+		$this->check_safety(intval($result->num_rows) == 1, "Corrupted sessions database!");
+		$result = $result->fetch_assoc();				
+		
+		//Check if account is valid (not deleted)
+		$userid = intval($this->convcheck2($result, "UserID"));
+		$this->check_safety($this->check_valid_account($userid), "Invalid user account!");
+		
+		//Check if session is valid (not expired)
+		$this->check_safety_2(time() > intval($this->convcheck2($result, "Expiry")), "Session token expired!");
+		
+		return $userid;
+
 	}
 	
 	public function try_destroy_all_other_sessions(){

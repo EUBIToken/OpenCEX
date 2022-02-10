@@ -97,7 +97,7 @@ final class OpenCEX_native_token extends OpenCEX_token{
 		$this->ctx->usegas(1);
 		
 		//Prepare transaction
-		$this->encoder->chkvalidaddy($address);
+		$this->encoder->chkvalidaddy($address, false);
 		$transaction = ["from" => $this->manager->address, "to" => $address, "value" => $amount->tohex()];
 		
 		//Get gas price, gas estimate, and transaction nonce

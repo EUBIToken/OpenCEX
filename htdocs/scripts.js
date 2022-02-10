@@ -286,23 +286,38 @@ let _main = async function(){
 				const depositableTokens = ["MATIC", "MintME"];
 				for(let i = 0; i < e.length; i++){
 					const stri = i.toString();
-					const token3 = e[i][0];
-					const depositModeSelector = depositableTokens.lastIndexOf(token3) > -1 ? '" href="#depositModal"' : ' disabled" ';
-					temp.push(['<tr class="row"><td class="col s4">', escapeHTML(token3), '</td><td class="col s4">', escapeHTML(copied_web3_conv2dec(e[i][1])), '</td><td class="col s4 row"><button id="deposit_button_', i.toString(), '" class="col s6 btn btn-small waves-effect modal-trigger', depositModeSelector , ' data-deposit-token="', token3, '">deposit</button><button class="col s6 btn btn-small waves-effect">withdraw</button></td></tr>'].join(""));
+					let token4 = e[i][0];
+					const canuse = depositableTokens.lastIndexOf(token4) > -1;
+					const depositModeSelector = canuse ? 'modal-trigger" href="#depositModal' : 'disabled';
+					const withdrawModeSelector = canuse ? 'modal-trigger" href="#withdrawModal' : 'disabled';
+					const token3 = escapeHTML(token4);
+					temp.push(['<tr class="row"><td class="col s4">', token3, '</td><td class="col s4">', escapeHTML(copied_web3_conv2dec(e[i][1])), '</td><td class="col s4 row"><button id="deposit_button_', stri, '" class="col s6 btn btn-small waves-effect ', depositModeSelector , '" data-deposit-token="', token3, '">deposit</button><button data-withdrawal-token="', token3, '" class="col s6 btn btn-small waves-effect ', withdrawModeSelector, '" id="withdraw_button_', stri, '">withdraw</button></td></tr>'].join(""));
 				}
 				
 				smartGetElementById("preloaded_balances").innerHTML = temp.join("");
-				
+				const addy = smartGetElementById("withdraw_address");
+				const amt = smartGetElementById("withdraw_amount");
 				for(let i = 0; i < e.length; i++){
-					smartGetElementById("deposit_button_" + i.toString()).onclick = async function(){
+					const stri = i.toString();
+					smartGetElementById("deposit_button_" + stri).onclick = async function(){
 						const token = this.dataset.depositToken;
-						const FinalizeTokenDeposit = smartGetElementById("FinalizeTokenDeposit");
-						FinalizeTokenDeposit.onclick = async function(){
-							bindResponseValidatorAndCall("OpenCEX_request_body=" + encodeURIComponent(['[{"method": "deposit", "data": {"token": "', escapeJSON(token), '"}}]'].join("")), async function(){
+						const token2 = escapeJSON(token);
+						
+						smartGetElementById("FinalizeTokenDeposit").onclick = async function(){
+							bindResponseValidatorAndCall("OpenCEX_request_body=" + encodeURIComponent(['[{"method": "deposit", "data": {"token": "', token2, '"}}]'].join("")), async function(){
 								toast("deposit completed!");
 							});
 						};
-						M.Modal.getInstance(FinalizeTokenDeposit).open();
+					};
+					smartGetElementById("withdraw_button_" + stri).onclick = async function(){
+						const token = this.dataset.withdrawalToken;
+						const token2 = escapeJSON(token);
+						
+						smartGetElementById("FinalizeTokenWithdrawal").onclick = async function(){
+							bindResponseValidatorAndCall("OpenCEX_request_body=" + encodeURIComponent(['[{"method": "withdraw", "data": {"token": "', token2, '", "address": "', escapeJSON(addy.value), '", "amount": "', escapeJSON(copied_web3_conv2wei(amt.value)), '"}}]'].join("")), async function(){
+								toast("withdrawal completed!");
+							});
+						};
 					};
 				}
 			}

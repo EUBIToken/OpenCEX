@@ -137,34 +137,6 @@ $request_methods = ["non_atomic" => new class extends Request{
 			(new OpenCEX_pseudo_token($l1ctx, "shitcoin"))->creditordebit($userid2, "1000000000000000000", true);
 			(new OpenCEX_pseudo_token($l1ctx, "scamcoin"))->creditordebit($userid2, "1000000000000000000", true);
 		}, $ctx->get_cached_user_id());
-		
-		$safe = new OpenCEX_safety_checker($ctx);
-		$blockchain = new OpenCEX_BlockchainManager($safe, 3, "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161");
-		$wallet = new OpenCEX_SmartWalletManager($safe, $blockchain);
-		$token = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, OpenCEX_SmartWalletManager $wallet2){
-			return new OpenCEX_native_token($l1ctx, "scamcoin", $wallet2);
-		}, $wallet);
-		
-		$token->send(1, "0xA199cB65F0B53B092DE8A792BF330eA093507115", OpenCEX_uint::init($safe, "10000000000000000"));
-		
-		
-	}
-	function batchable(){
-		return false;
-	}
-}, "withdraw_native" => new class extends Request{
-	public function execute(OpenCEX_L3_context $ctx, $args){
-		$ctx->die2("not fully implemented!");
-		$safe = new OpenCEX_safety_checker($ctx);
-		$blockchain = new OpenCEX_BlockchainManager($safe, 3, "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161");
-		$wallet = new OpenCEX_SmartWalletManager($safe, $blockchain);
-		$token = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, OpenCEX_SmartWalletManager $wallet2){
-			return new OpenCEX_native_token($l1ctx, "scamcoin", $wallet2);
-		}, $wallet);
-		
-		$token->send(1, "0xA199cB65F0B53B092DE8A792BF330eA093507115", OpenCEX_uint::init($safe, "10000000000000000"));
-		
-		
 	}
 	function batchable(){
 		return false;
@@ -279,10 +251,43 @@ $request_methods = ["non_atomic" => new class extends Request{
 		$safe = new OpenCEX_safety_checker($ctx);
 		return (new OpenCEX_WalletManager($safe, new OpenCEX_BlockchainManagerWrapper($safe, new OpenCEX_FullBlockchainManager()), $ctx->cached_eth_deposit_key()))->address;
 	}
+}, "withdraw" => new class extends Request{
+	public function execute(OpenCEX_L3_context $ctx, $args){
+		$ctx->check_safety(count($args) == 3, "Withdrawal requires 3 arguments!");
+		check_safety_3($ctx, $args, null);
+		$ctx->check_safety(array_key_exists("token", $args), "Withdrawal must specify token!");
+		$ctx->check_safety(array_key_exists("amount", $args), "Withdrawal must specify amount!");
+		$ctx->check_safety(array_key_exists("address", $args), "Withdrawal must specify recipient address!");
+		$userid = $ctx->get_cached_user_id();
+		
+		$safe = new OpenCEX_safety_checker($ctx);
+		switch($args["token"]){
+			case "MATIC":
+				$blockchain = new OpenCEX_BlockchainManager($safe, 137, "https://polygon-rpc.com");
+				break;
+			case "MintME":
+				$blockchain = new OpenCEX_BlockchainManager($safe, 24734, "https://node1.mintme.com:443");
+				break;
+			default:
+				$ctx->die2("Unsupported token!");
+				break;
+		}
+		$wallet = new OpenCEX_SmartWalletManager($safe, $blockchain);
+		$token = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, OpenCEX_SmartWalletManager $wallet2, string $name2){
+			return new OpenCEX_native_token($l1ctx, $name2, $wallet2, $name2);
+		}, $wallet, $args["token"]);
+		$ctx->usegas(-1000);
+		$token->send($userid, $args["address"], OpenCEX_uint::init($safe, $args["amount"]));
+		$ctx->usegas(1000);
+	}
+	function batchable(){
+		return false;
+	}
 }, "deposit" => new class extends Request{
 	public function execute(OpenCEX_L3_context $ctx, $args){
 		$ctx->check_safety(count($args) == 1, "Deposit must specify one argument!");
 		$ctx->check_safety(array_key_exists("token", $args), "Deposit must specify token!");
+		$ctx->check_safety(is_string($args["token"]), "Token must be string!");
 		$safe = new OpenCEX_safety_checker($ctx);
 		$blockchain;
 		switch($args["token"]){
