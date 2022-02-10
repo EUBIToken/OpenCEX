@@ -1,0 +1,70 @@
+<html>
+	<head>
+		<title>Jessie Lesbian cryptocurrency exchange</title>
+		
+		<!-- load materialize library -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css" integrity="sha512-koDUjGvRZrcni2jJFT9I3VRYY0PWNKtr1Wj9U36eLhcFgBm36KV11yTi4p2H3HwUMirxZ+dMpKeUuRjYOFjeDQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js" integrity="sha512-zCHGovd9kHtyOdCLYmXApVFPtXQjZNyjHGU6DKPKR1HnhiSnVc71r1x7bpahdGw7mOKbz6oZ1k7/gbfRNp50ag==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		
+		<!-- load Web3.js -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.0/web3.min.js" integrity="sha512-C63V0mFzwl8KV2fRz0QJNKX0d9877urOLSUq5WUq8nUOhDl69hKdGr9mAvl57k47GNjqEMAtiufsvDnk7xs8+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		
+		<!-- load scripts -->
+		<script async src="scripts.js"></script>
+	</head>
+	<body class="blue-grey darken-3" style="color: white;">
+		<nav class="blue accent-4">
+			<div class="nav-wrapper">
+				<h6 class="brand-logo left"><invalid style="color: pink">Jessie</invalid> <invalid style="color: purple">Lesbian</invalid> cryptocurrency exchange</h6>
+				<ul id="nav-mobile" class="right">
+					<li><a href="clientarea.html">Client area</a></li>
+				</ul>
+			</div>
+		</nav>
+		<input type="hidden" id="trading_room">
+		<ul style="z-index: 2022" class="sidenav blue-grey darken-2" id="slide-out">
+			<li class="blue-grey darken-1" id="pair_selector_shitcoin_scamcoin">shitcoin/scamcoin</li>
+		</ul>
+		<div class="row blue-grey darken-2">
+			<iframe class="col l6 m12 s12" id="tradingview" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_32d3a&amp;symbol=BTCUSDT&amp;interval=D&amp;hidesidetoolbar=0&amp;symboledit=1&amp;saveimage=1&amp;toolbarbg=F1F3F6&amp;studies=%5B%5D&amp;hideideas=1&amp;theme=Light&amp;style=1&amp;timezone=Etc%2FUTC&amp;studies_overrides=%7B%7D&amp;overrides=%7B%7D&amp;enabled_features=%5B%5D&amp;disabled_features=%5B%5D&amp;locale=en&amp;utm_source=coinmarketcap.com&amp;utm_medium=widget&amp;utm_campaign=chart&amp;utm_term=BTCUSDT" style="aspect-ratio: 16 / 9; margin: 0 !important; padding: 0 !important;" frameborder="0" allowtransparency="true" scrolling="no" allowfullscreen=""></iframe>
+			<div class="col l6 m12 s12 row">
+				<h6>Place your order</h6>
+				<div class="col s12 row">
+					<div class="input-field col s12">
+						<input id="order_amount" type="text">
+						<label for="order_amount">Amount</label>
+					</div>
+					<div class="input-field col s12">
+						<input id="order_price" type="text">
+						<label for="order_price">Price</label>
+					</div>
+					<form class="col s6">
+						<p>
+							<label>
+								<input id="buy_order_selector" name="order_type" type="radio" checked />
+								<span>Buy</span>
+							</label>
+						</p>
+						<p>
+							<label>
+								<input name="order_type" type="radio" />
+								<span>Sell</span>
+							</label>
+						</p>
+					</form>
+					<div class="col s6">
+						<select id="fill_mode_selector">
+							<option value="0" selected>limit</option>
+							<option value="1">immediate or cancel</option>
+							<option value="2">fill or kill</option>
+						</select>
+					</div>
+					<button class="btn waves-effect col s12" id="placeOrderButton">Place order</button>
+				</div>
+								
+			</div>
+		</div>
+		<a style="z-index: 2021" class="btn-floating btn-small waves-effect waves-light sidenav-trigger" data-target="slide-out">></a>
+		
+	</body>
+</html>

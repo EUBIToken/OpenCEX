@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<title>Jessie Lesbian cryptocurrency exchange</title>
+		
+		<!-- load materialize library -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css" integrity="sha512-koDUjGvRZrcni2jJFT9I3VRYY0PWNKtr1Wj9U36eLhcFgBm36KV11yTi4p2H3HwUMirxZ+dMpKeUuRjYOFjeDQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js" integrity="sha512-zCHGovd9kHtyOdCLYmXApVFPtXQjZNyjHGU6DKPKR1HnhiSnVc71r1x7bpahdGw7mOKbz6oZ1k7/gbfRNp50ag==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		
+		<!-- load scripts -->
+		<script src="scripts.js"></script>
+		
+		<!-- EXTRA: RainCaptcha -->
+		<script defer src="https://raincaptcha.com/base.js" type="application/javascript"></script>
+	</head>
+	<body class="blue-grey darken-3" style="color: white;">
+		<nav class="blue accent-4">
+			<div class="nav-wrapper">
+				<h6 class="brand-logo left"><invalid style="color: pink">Jessie</invalid> <invalid style="color: purple">Lesbian</invalid> cryptocurrency exchange</h6>
+				<ul id="nav-mobile" class="right">
+					<li><a href="index.html">Back</a></li>
+				</ul>
+			</div>
+		</nav>
+		<div class="row center" style="max-width: 50em">
+			<h4>Trader registration</h4>
+			<div class="input-field col s12">
+				<input id="username" type="text" class="validate">
+				<label for="username">Username</label>
+			</div>
+			<div class="input-field col s12">
+				<input id="password" type="password" class="validate">
+				<label for="password">password</label>
+			</div>
+			<div class="input-field col s12">
+				<input id="password2" type="password" class="validate">
+				<label for="password2">confirm password</label>
+			</div>
+			<form class="col s12" id="OpenCEX-captcha-result">
+				<div id="rain-captcha" data-key="f56a5c1f5182ef7a7847594a0126721d5e3c5305"></div>
+			</form>
+			<button class="col s12 btn waves-effect waves-light" id="accountRegistrationButton">Register</button>
+		</div>
+	</body>
+</html>

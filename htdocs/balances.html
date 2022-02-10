@@ -1,0 +1,52 @@
+<html>
+	<head>
+		<title>Jessie Lesbian cryptocurrency exchange</title>
+		
+		<!-- load materialize library -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css" integrity="sha512-koDUjGvRZrcni2jJFT9I3VRYY0PWNKtr1Wj9U36eLhcFgBm36KV11yTi4p2H3HwUMirxZ+dMpKeUuRjYOFjeDQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js" integrity="sha512-zCHGovd9kHtyOdCLYmXApVFPtXQjZNyjHGU6DKPKR1HnhiSnVc71r1x7bpahdGw7mOKbz6oZ1k7/gbfRNp50ag==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		
+		<!-- load Web3.js -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.0/web3.min.js" integrity="sha512-C63V0mFzwl8KV2fRz0QJNKX0d9877urOLSUq5WUq8nUOhDl69hKdGr9mAvl57k47GNjqEMAtiufsvDnk7xs8+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		
+		<!-- load scripts -->
+		<script async src="scripts.js"></script>
+	</head>
+	<body class="blue-grey darken-3" style="color: white;">
+		<nav class="blue accent-4">
+			<div class="nav-wrapper">
+				<h6 class="brand-logo left"><invalid style="color: pink">Jessie</invalid> <invalid style="color: purple">Lesbian</invalid> cryptocurrency exchange</h6>
+				<ul id="nav-mobile" class="right">
+					<li><a href="clientarea.html">Client area</a></li>
+				</ul>
+			</div>
+		</nav>
+		<input type="hidden" id="balances_manager">
+		<input type="hidden" id="has_preloads">
+		<table class="highlight responsive-table">
+			<thead>
+				<tr class="row">
+					<th class="col s4">Coin</th>
+					<th class="col s4">Balance</th>
+					<th class="col s4">Actions</th>
+				</tr>
+			</thead>
+			<tbody id="preloaded_balances">
+				
+			</tbody>
+		</table>
+		<div class="row">
+			<button id="requestShitcoinButton" class="btn waves-effect col l6 m12 s12">Request test shitcoins</button>
+		</div>
+		<div id="depositModal" class="modal blue-grey darken-2">
+			<div class="modal-content">
+				<h4>Deposit token</h4>
+				<h6 id="preloaded_eth_deposit_address"></h6>
+			</div>
+			<div class="modal-footer">
+				<a href="#!" class="modal-close waves-effect waves-light btn-flat">cancel</a>
+				<a href="#!" class="modal-close waves-effect waves-light btn-flat" id="FinalizeTokenDeposit">finalize deposit</a>
+			</div>
+		</div>
+	</body>
+</html>
