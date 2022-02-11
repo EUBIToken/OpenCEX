@@ -259,6 +259,7 @@ let _main = async function(){
 		//BEGIN trading pair registrations
 		
 		bindPair("shitcoin", "scamcoin");
+		bindPair("MATIC", "MintME");
 		
 		//END trading pair registrations
 		
@@ -322,8 +323,30 @@ let _main = async function(){
 				}
 			}
 		});
-			
-
+	});
+	
+	callIfExists("orders_manager", async function(){
+		const copied_web3_conv2dec = Web3.utils.fromWei;
+		const preloaded_orders = smartGetElementById("preloaded_orders");
+		Web3 = undefined;
+		bindResponseValidatorAndCall("OpenCEX_request_body=%5B%7B%22method%22%3A%20%22load_active_orders%22%7D%5D", async function(e){
+			const temp = [];
+			e = e[0];
+			for(let i = 0; i < e.length; i++){
+				temp.push(['<tr class="row"><td class="col s2">', escapeHTML(e[i][0]), "/", escapeHTML(e[i][1]), '</td><td class="col s2">', escapeHTML(copied_web3_conv2dec(e[i][2])), '</td><td class="col s2">', escapeHTML(copied_web3_conv2dec(e[i][3])), '</td><td class="col s2">', escapeHTML(copied_web3_conv2dec(e[i][4])), '</td><td class="col s2">', (e[i][6] ? "buy" : "sell"), '</td><td class="col s2 row"><button class="col s12 btn btn-small waves-effect" data-cancel-target="', escapeHTML(e[i][5]), '" id="cancel_button_', i.toString(), '">Cancel</button></td></tr>'].join(""));
+			}
+			preloaded_orders.innerHTML = temp.join("");
+			for(let i = 0; i < e.length; i++){
+				smartGetElementById("cancel_button_" + i.toString()).onclick = async function(){
+					const _this = this;
+					bindResponseValidatorAndCall("OpenCEX_request_body=" + encodeURIComponent(['[{"method": "cancel_order", "data": {"target": "', escapeJSON(this.dataset.cancelTarget), '"}}]'].join("")), async function(){
+						preloaded_orders.removeChild(_this.parentElement.parentElement);
+						toast("Order canceled successfully!");
+					});
+					
+				};
+			}
+		});
 	});
 	
 	//END TRADING FUNCTIONS

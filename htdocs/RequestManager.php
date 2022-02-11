@@ -2,6 +2,7 @@
 set_time_limit(0);
 $leaked_ctx = null;
 $OpenCEX_anything_locked = false;
+$OpenCEX_tempgas = false;
 //Treat warnings as errors
 function OpenCEX_error_handler($errno, string $message, string $file, int $line, $context = NULL)
 {
@@ -276,9 +277,11 @@ $request_methods = ["non_atomic" => new class extends Request{
 		$token = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, OpenCEX_SmartWalletManager $wallet2, string $name2){
 			return new OpenCEX_native_token($l1ctx, $name2, $wallet2, $name2);
 		}, $wallet, $args["token"]);
+		
+		//We add some gas, so we don't fail due to insufficent gas.
 		$ctx->usegas(-1000);
+		$GLOBALS["OpenCEX_tempgas"] = true;
 		$token->send($userid, $args["address"], OpenCEX_uint::init($safe, $args["amount"]));
-		$ctx->usegas(1000);
 	}
 	function batchable(){
 		return false;
@@ -305,7 +308,63 @@ $request_methods = ["non_atomic" => new class extends Request{
 		$token = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, OpenCEX_SmartWalletManager $manager, string $token2){
 			return new OpenCEX_native_token($l1ctx, $token2, $manager);
 		}, $wallet, $args["token"]);
+		
+		//We add some gas, so we don't fail due to insufficent gas.
+		$ctx->usegas(-1000);
+		$GLOBALS["OpenCEX_tempgas"] = true;
 		$token->sweep($ctx->get_cached_user_id());
+	}
+	function batchable(){
+		return false;
+	}
+}, "load_active_orders" => new class extends Request{
+	public function execute(OpenCEX_L3_context $ctx, $args){
+		return $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, int $userid2){
+			$l1ctx->safe_query("LOCK TABLE Orders READ;");
+			$result = $l1ctx->safe_query(implode(["SELECT Pri, Sec, Price, InitialAmount, TotalCost, Id, Buy FROM Orders WHERE PlacedBy = ", strval($userid2), ";"]));
+			$l1ctx->safe_query("UNLOCK TABLES;");
+			$ret = [];
+			if($result->num_rows > 0){
+				$checker = $l1ctx->get_safety_checker();
+				while($row = $result->fetch_assoc()) {
+					$Pri = $checker->convcheck2($row, "Pri");
+					$Sec = $checker->convcheck2($row, "Sec");
+					$Price = $checker->convcheck2($row, "Price");
+					$InitialAmount = $checker->convcheck2($row, "InitialAmount");
+					$TotalCost = $checker->convcheck2($row, "TotalCost");
+					$Id = $checker->convcheck2($row, "Id");
+					$Buy = $checker->convcheck2($row, "Buy");
+					array_push($ret, [$Pri, $Sec, $Price, $InitialAmount, $TotalCost, $Id, $Buy == "1"]);
+				}
+			}
+			return $ret;
+		}, $ctx->get_cached_user_id());
+	}
+	function batchable(){
+		return false;
+	}
+}, "cancel_order" => new class extends Request{
+	public function execute(OpenCEX_L3_context $ctx, $args){
+		$ctx->check_safety(count($args) == 1, "Order cancellation must specify one argument!");
+		$ctx->check_safety(array_key_exists("target", $args), "Order cancellation must specify target!");
+		$ctx->check_safety(is_string($args["target"]), "Target must be string!");
+		$ctx->check_safety(is_numeric($args["target"]), "Target must be numeric!");
+		$result = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, string $target){
+			$l1ctx->safe_query("LOCK TABLE Orders READ;");
+			$res2 = $l1ctx->safe_query(implode(['SELECT PlacedBy FROM Orders WHERE Id = "', $target, '";']));
+			$l1ctx->safe_query("UNLOCK TABLES;");
+			return $res2;
+		}, $args["target"]);
+		$ctx->check_safety($result->num_rows == 1, "Corrupted orders database!");
+		$ctx->check_safety($ctx->convcheck2($result->fetch_assoc(), "PlacedBy") == strval($ctx->get_cached_user_id()), "Attempted to cancel another user's order!");
+		$ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, string $target){
+			$l1ctx->safe_query("LOCK TABLE Orders WRITE;");
+			$l1ctx->safe_query(implode(['DELETE FROM Orders WHERE Id = "', $target, '";']));
+			$l1ctx->safe_query("UNLOCK TABLES;");
+		}, $args["target"]);
+	}
+	function batchable(){
+		return false;
 	}
 }];
 
@@ -401,6 +460,10 @@ try{
 		//We need to flush outstanding changes in a standard batch after each request.
 		if($non_atomic){
 			$ctx->flush_outstanding();
+		}
+		
+		if($GLOBALS["OpenCEX_tempgas"]){
+			$ctx->usegas(1000);
 		}
 	}
 	
