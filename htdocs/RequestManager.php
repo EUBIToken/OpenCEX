@@ -350,18 +350,27 @@ $request_methods = ["non_atomic" => new class extends Request{
 		$ctx->check_safety(is_string($args["target"]), "Target must be string!");
 		$ctx->check_safety(is_numeric($args["target"]), "Target must be numeric!");
 		$result = $ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, string $target){
-			$l1ctx->safe_query("LOCK TABLE Orders READ;");
-			$res2 = $l1ctx->safe_query(implode(['SELECT PlacedBy FROM Orders WHERE Id = "', $target, '";']));
-			$l1ctx->safe_query("UNLOCK TABLES;");
+			$l1ctx->safe_query("LOCK TABLE Orders WRITE, Sessions READ, Accounts READ;");
+			$GLOBALS["OpenCEX_anything_locked"] = true;
+			$GLOBALS["OpenCEX_orders_table_unlk"] = false;
+			$res2 = $l1ctx->safe_query(implode(['SELECT PlacedBy, Pri, Sec, InitialAmount, TotalCost, Buy FROM Orders WHERE Id = "', $target, '";']));
 			return $res2;
 		}, $args["target"]);
+		$ctx->check_safety_2($result->num_rows == 0, "Non-existant order!");
 		$ctx->check_safety($result->num_rows == 1, "Corrupted orders database!");
-		$ctx->check_safety($ctx->convcheck2($result->fetch_assoc(), "PlacedBy") == strval($ctx->get_cached_user_id()), "Attempted to cancel another user's order!");
-		$ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, string $target){
-			$l1ctx->safe_query("LOCK TABLE Orders WRITE;");
+		$result = $result->fetch_assoc();
+		$id = $ctx->get_cached_user_id();
+		$ctx->check_safety($ctx->convcheck2($result, "PlacedBy") == strval($id), "Attempted to cancel another user's order!");
+		$ctx->borrow_sql(function(OpenCEX_L1_context $l1ctx, string $target, OpenCEX_safety_checker $safe, $res2, int $id2){
 			$l1ctx->safe_query(implode(['DELETE FROM Orders WHERE Id = "', $target, '";']));
+			$token = new OpenCEX_pseudo_token($l1ctx, $safe->convcheck2($res2, ($safe->convcheck2($res2, "Buy") == "1") ? "Pri" : "Sec"));
+			$remains = OpenCEX_uint::init($safe, $safe->convcheck2($res2, "InitialAmount"));
+			$remains = $remains->sub(OpenCEX_uint::init($safe, $safe->convcheck2($res2, "TotalCost")));
+			$l1ctx->safe_query("LOCK TABLE Balances WRITE;");
+			$GLOBALS["OpenCEX_orders_table_unlk"] = true;
+			$token->creditordebit($id2, $remains, true, true);
 			$l1ctx->safe_query("UNLOCK TABLES;");
-		}, $args["target"]);
+		}, $args["target"], new OpenCEX_safety_checker($ctx), $result, $id);
 	}
 	function batchable(){
 		return false;
